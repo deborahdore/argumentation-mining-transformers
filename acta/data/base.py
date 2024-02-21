@@ -4,21 +4,19 @@ Module that defines the abstract class `BaseDataset` which is the base class for
 the abstract class `BaseDataModule` which is the base class for
 `RelationClassificationDataModule` and `SequenceTaggingDataModule`.
 
-    Argumentation Mining Transformers Base Data Module
-    Copyright (C) 2024 Cristian Cardellino
+   Copyright 2023 The ANTIDOTE Project Contributors <https://univ-cotedazur.eu/antidote>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published
-    by the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+       http://www.apache.org/licenses/LICENSE-2.0
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
 """
 
 import logging
@@ -69,13 +67,11 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
 				 id2label: Optional[Dict[int, str]] = None,
 				 max_seq_length: Optional[int] = None,
 				 truncation_strategy: str = 'longest_first',
-				 training_labels: list = None,
 				 **kwargs):
 		super().__init__()
 		assert truncation_strategy in {'longest_first', 'only_second', 'only_first'}
 
 		self.tokenizer = tokenizer
-		self.training_labels = training_labels
 
 		self.label2id = label2id
 		if self.label2id is None:
@@ -149,15 +145,11 @@ class BaseDataModule(LightningDataModule, metaclass=ABCMeta):
 				 train_batch_size: int = 8,
 				 eval_batch_size: int = 8,
 				 evaluation_split: Optional[str] = None,
-				 num_workers: int = -1,
-				 training_labels: str = None):
+				 num_workers: int = -1):
 		super().__init__()
 
 		if len(data_splits) == 0:
 			raise ValueError("The `data_splits` argument must not be empty.")
-
-		if training_labels:
-			training_labels = [x.lstrip("__label__") for x in training_labels[0].split()]
 
 		valid_splits = {'train', 'test', 'validation'}
 		if not valid_splits.issuperset(data_splits.keys()):
@@ -167,13 +159,6 @@ class BaseDataModule(LightningDataModule, metaclass=ABCMeta):
 
 		if labels is not None and len(labels) != len(set(labels)):
 			raise ValueError("The labels should be unique.")
-
-		if labels is not None and training_labels is not None and len(labels) > len(training_labels):
-			raise ValueError("The Number of labels cannot be greater than the number of training labels")
-
-		if labels is not None and training_labels is not None and all(
-				elem in training_labels for elem in labels) is False:
-			raise ValueError("The labels in the LABELS cannot be outside the set of labels in TRAINING LABELS")
 
 		self.data_splits = data_splits
 		self.tokenizer_name_or_path = tokenizer_name_or_path
@@ -185,15 +170,9 @@ class BaseDataModule(LightningDataModule, metaclass=ABCMeta):
 		self.tokenizer_config = tokenizer_config
 		self.evaluation_split = evaluation_split
 		self.num_workers = num_workers if num_workers > 0 else cpu_count()
-		self.training_labels = training_labels
 
 		if labels is None:
-			if training_labels:
-				labels = self.training_labels
-			else:
-				# use only the labels in the dataset
-				labels = self.LABELS
-
+			labels = self.LABELS
 		self._labels = {lbl: idx for idx, lbl in enumerate(labels)}
 
 		# Silencing the warning to pad with fast tokenizer since with Lightning this is

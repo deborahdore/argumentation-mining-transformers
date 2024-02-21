@@ -3,21 +3,19 @@ Relation Classification Datasets. It has the definitions of the
 `RelationClassificationDataset` and the `RelationClassificationDataModule`.
 The Dataset reads column based data (csv, tsv) for Relation Classification.
 
-    Argumentation Mining Transformers Relation Classification Data Module
-    Copyright (C) 2024 Cristian Cardellino
+   Copyright 2023 The ANTIDOTE Project Contributors <https://univ-cotedazur.eu/antidote>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published
-    by the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+       http://www.apache.org/licenses/LICENSE-2.0
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
 """
 
 import csv
@@ -73,7 +71,6 @@ class RelationClassificationDataset(BaseDataset):
 				 delimiter: str = '\t',
 				 quotechar: str = '"',
 				 label_prefix: str = '__label__',
-				 training_labels: list = None,
 				 **kwargs):
 		super().__init__(tokenizer=tokenizer,
 						 path_to_dataset=path_to_dataset,
@@ -84,7 +81,6 @@ class RelationClassificationDataset(BaseDataset):
 						 delimiter=delimiter,
 						 quotechar=quotechar,
 						 label_prefix=label_prefix,
-						 training_labels=training_labels,
 						 **kwargs)
 
 	def _load_dataset(self,
@@ -100,8 +96,6 @@ class RelationClassificationDataset(BaseDataset):
 			else:
 				csv_reader = csv.reader(fh, delimiter=delimiter, quotechar=quotechar)
 			dataset = list(csv_reader)
-			if self.training_labels:
-				dataset = [sublist for sublist in dataset if sublist[0].lstrip('__label__') in self.training_labels]
 
 		self.dataset = [{"text": d[1], "text_pair": d[2]} for d in dataset]
 
@@ -241,5 +235,4 @@ class RelationClassificationDataModule(BaseDataModule):
 		return RelationClassificationDataset(tokenizer=self.tokenizer,
 											 path_to_dataset=path_to_dataset,
 											 label2id=self.labels,
-											 training_labels=self.training_labels,
 											 **self.datasets_config)
