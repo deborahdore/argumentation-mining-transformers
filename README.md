@@ -150,6 +150,10 @@ There are other options available as well:
                         The list of labels (separated by spaces) for the task.
                         If not given it will fallback to the default labels
                         for the task.
+    --training-labels [LABELS ...] 
+                        The list of labels (separated by spaces) used to filter the
+                        dataset for training.
+                        If not given, it will use default labels.
     --accelerator ACCELERATOR
                         What device to use as accelerator (cpu, gpu, tpu,
                         etc).
