@@ -173,7 +173,8 @@ class RelationClassificationDataModule(BaseDataModule):
 	def decode_predictions(self,
 						   input_ids: Union[List[int], List[List[int]]],
 						   predictions: Union[int, List[int]],
-						   labels: Union[int, List[int], None] = None) -> Union[Tuple[str], List[Tuple[str]]]:
+						   labels: Union[int, List[int], None] = None,
+						   logits: Union[int, List[int]] = None) -> Union[Tuple[str], List[Tuple[str]]]:
 		"""
 		Decodes the input_ids, which can be a single instance (List[int]) or a
 		batch of instances (List[List[int]]) into its corresponding pair of
@@ -220,6 +221,14 @@ class RelationClassificationDataModule(BaseDataModule):
 						 self.tokenizer.decode(input_id[input_id.index(self.tokenizer.sep_token_id):],
 											   skip_special_tokens=True)) for prediction, input_id in
 						zip(predictions, input_ids)]
+			elif logits is not None:
+				return [(self.id2label[label], self.id2label[prediction],
+						 self.tokenizer.decode(input_id[:input_id.index(self.tokenizer.sep_token_id)],
+											   skip_special_tokens=True),
+						 self.tokenizer.decode(input_id[input_id.index(self.tokenizer.sep_token_id):],
+											   skip_special_tokens=True), str(logits.tolist()[0]), str(logits.tolist()[1]),
+						 str(logits.tolist()[2])) for label, prediction, input_id, logits in
+						zip(labels, predictions, input_ids, logits)]
 			else:
 				return [(self.id2label[label], self.id2label[prediction],
 						 self.tokenizer.decode(input_id[:input_id.index(self.tokenizer.sep_token_id)],

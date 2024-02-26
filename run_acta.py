@@ -245,11 +245,17 @@ def evaluate_model(data_module: pl.LightningDataModule,
 		# Predictions have the form (true_label, predicted_label, sentence1, sentence2)
 		true_labels = []
 		pred_labels = []
+
+		zero_idx_label = data_module.id2label.get(0)
+		one_idx_label = data_module.id2label.get(1)
+		two_idx_label = data_module.id2label.get(2)
+
 		for prediction in decoded_predictions:
 			true_labels.append(prediction[0])
 			pred_labels.append(prediction[1])
+
 		with open(results_dir / f'{model_name}_predictions.tsv', 'w') as fh:
-			print('true\tpredicted\tsentence1\tsentence2', file=fh)
+			print(f'true\tpredicted\tsentence1\tsentence2\t{zero_idx_label}_proba\t{one_idx_label}_proba\t{two_idx_label}_proba', file=fh)
 			print('\n'.join(['\t'.join(pred) for pred in decoded_predictions]), file=fh)
 		if config.relevant_labels is not None:
 			relevant_labels = config.relevant_labels

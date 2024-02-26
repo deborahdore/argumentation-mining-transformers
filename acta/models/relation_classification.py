@@ -19,6 +19,7 @@ Pytorch Lightning Module for Relation Classification.
 from typing import Any, Dict, List, Optional
 
 import torch
+from torch import softmax
 from transformers import AutoModelForSequenceClassification
 
 from .base import BaseTransformerModule
@@ -105,9 +106,11 @@ class RelationClassificationTransformerModule(BaseTransformerModule):
 		over the logits).
 		"""
 		labels = batch.pop('labels', None)
+		logits = softmax(self(**batch).logits, dim=-1)
 		predictions = self(**batch).logits.argmax(1)
 
 		return {
 			"input_ids"  : batch.input_ids.tolist(),
 			"labels"     : labels.tolist() if labels is not None else None,
-			"predictions": predictions.tolist()}
+			"predictions": predictions.tolist(),
+			"logits"     : logits}
